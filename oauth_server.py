@@ -9,18 +9,16 @@ import requests.auth
 # load env variables here
 load_dotenv()
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
-CIIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRETE")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRETE")
 REDIRECT_URL = os.getenv("SPOTIFY_REDIRECT_URI")
 SCOPE= "user-library-read playlist-modify-private playlist-modify-public"
-
-
+URL = "https://accounts.spotify.com/"
+TOKENS_PATH = "user_token.json"
 app = Flask(__name__)
 
-TOKENS_PATH = 'spotify_tokens.json'
-
-def save_tokens(data):
+def save_tokens(token):
     with open(TOKENS_PATH, 'w') as file:
-        json.dump(data, file)
+        json.dump(token, file)
 
 def load_tokens():
     if os.path.exists(TOKENS_PATH):
@@ -29,40 +27,56 @@ def load_tokens():
 
 @app.route('/')
 def login():
+    endpoint = 'authorize?'
     params = {
         'client_id': CLIENT_ID,
-        'response_type': "code",
-        "redirect_uri": REDIRECT_URL,
-        "scope": SCOPE
+        'response_type': 'code',
+        'scope': SCOPE,
+        'redirect_uri': REDIRECT_URL
     }
-    url = f"https://accounts.spotify.com/authorize?{urlencode(params)}"
+    url = URL + endpoint + urlencode(params)
     return redirect(url)
-@app.route("/callback")
+
+@app.route('/callback')
 def callback():
-    #spotify redirects here with code ?code=AUTH_CODE
-    code = request.args.get("code")
-
-    # check if code was recieved
+    endpoint = "api/token"
+    url = URL + endpoint
+    code = request.args.get('code')
     if not code:
-        print("missing code")
+        print(code)
         return "Missing code", 400
-    
-    #Exchange code for tokens
-    token_url = "https://accounts.spotify.com/api/token"
     payload = {
-        "grant_type": CLIENT_ID,
-        "response_type": "code",
-        "redirect_uri": REDIRECT_URL,
+        'grant_type': "authorization_code",
+        "code": code,
+        "redirect_uri": REDIRECT_URL
     }
-
-    auth_header = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_ID)
-
-    res = requests.post(token_url, data=payload, auth=auth_header)
-    
-    print("This is the token data: ", res.json())
-    tokens = res.json()
+    auth_header = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
+    res = requests.post(url=url, data=payload, auth=auth_header)
+    res.raise_for_status()
+    tokens =  res.json()
     save_tokens(tokens)
-    return "Authentication successfull! You can close this window."
+    return "You are all set and ready to go. You can close the page now😉"
+    
+@app.route("/refresh")
+def refresh():
+    endpoint = 'api/refresh'
+    url = URL + endpoint
+    old_tokens = load_tokens["refresh_token"]
+    payload = {
+        "grant_type": "refresh_token",
+        "refresh_token": old_tokens,
+        "client_id": CLIENT_ID
+    }
+    auth_header = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
+    res = requests.post(url=url, data=payload, auth=auth_header)
+    res.raise_for_status()
+    new_tokens = res.json()
 
+    new_tokens["refresh_token"] = new_tokens.get("refresh_token",old_tokens["refresh_token"])
+
+    save_tokens(new_tokens)
+    
 if __name__ == "__main__":
     app.run(port=8888)
+
+
