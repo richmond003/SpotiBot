@@ -28,17 +28,18 @@ https://api.spotify.com/v1/playlists/{playlist_id}/tracks
 }
  """
 
-class Spotify_Api():
-    BASEURL = 'https://api.spotify.com/v1/me'
+class Api():
+    # BASEURL = 'https://api.spotify.com/v1/me'
     def __init__(self, token):
         self.token = token
-        self.BASEURL = 'https://api.spotify.com/v1/me'
+        self.BASEURL = 'https://api.spotify.com/v1'
         self.headers = {
             'Authorization': f"Bearer {self.token}",
             'Content-Type': "application/x-www-form-urlencoded"
         }
     def user_profile(self):
-        res = requests.get(url=self.BASEURL, headers= self.headers)
+        endpoint = f'{self.BASEURL}/me'
+        res = requests.get(url=endpoint, headers= self.headers)
         res.raise_for_status()
         data = res.json()
         return data
@@ -50,19 +51,23 @@ class Spotify_Api():
         data = res.json()
         return data
     
-    def tracks(self):
-        endpoint = f"{self.BASEURL}me/tracks"
+    def tracks(self, next_ptr=None):
+        endpoint = next_ptr or f"{self.BASEURL}me/tracks?limit=50"
         res = requests.get(url= endpoint , headers=self.headers)
         res.raise_for_status()
         data = res.json()
-        return data
+        return data["tracks"]
     
     def create_playlist(self, user_id, data):
         endpoint = f"{self.BASEURL}/users/{user_id}/playlists"
         res = requests.post(url=endpoint, headers=self.headers, data=data)
         res.raise_for_status()
-        data = res.json()
-        return data
+        stauts_code = res.status_code
+        if stauts_code == 201:
+            data = res.json()
+            return data, True
+        else:
+            return {}, False
 
     def add_items(self, playlist_id, data):
         endpoint = f"{self.BASEURL}/playlists/{playlist_id}/tracks"
@@ -71,5 +76,13 @@ class Spotify_Api():
         data = res.json()
         return data
     
-    def update_playlist(self):
-        pass
+    
+    """ 
+     new_playlist = {
+    "name" : "{artist}",
+    "description": "Auto generated playlist of your liked songs by {artist}.\n Automated with SpotiBot",
+    "publc": "false"
+}
+      
+    """
+

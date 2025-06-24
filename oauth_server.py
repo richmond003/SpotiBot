@@ -18,7 +18,7 @@ app = Flask(__name__)
 
 def save_tokens(token):
     with open(TOKENS_PATH, 'w') as file:
-        json.dump(token, file)
+        json.dump(token, file, indent=3)
 
 def load_tokens():
     if os.path.exists(TOKENS_PATH):
@@ -52,16 +52,17 @@ def callback():
     }
     auth_header = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
     res = requests.post(url=url, data=payload, auth=auth_header)
-    res.raise_for_status()
+    if res.raise_for_status():
+        return "Authentication failed"
     tokens =  res.json()
     save_tokens(tokens)
     return "You are all set and ready to go. You can close the page now😉"
     
 @app.route("/refresh")
 def refresh():
-    endpoint = 'api/refresh'
+    endpoint = 'api/token'
     url = URL + endpoint
-    old_tokens = load_tokens["refresh_token"]
+    old_tokens = load_tokens()["refresh_token"]
     payload = {
         "grant_type": "refresh_token",
         "refresh_token": old_tokens,
@@ -69,14 +70,17 @@ def refresh():
     }
     auth_header = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
     res = requests.post(url=url, data=payload, auth=auth_header)
-    res.raise_for_status()
+
+    if res.raise_for_status():
+        return "An error occured"
+    
     new_tokens = res.json()
-
-    new_tokens["refresh_token"] = new_tokens.get("refresh_token",old_tokens["refresh_token"])
-
+    
+    new_tokens["refresh_token"] = new_tokens.get("refresh_token",old_tokens)
     save_tokens(new_tokens)
+    return "Token sucessfully refreshed"
     
 if __name__ == "__main__":
-    app.run(port=8888)
+    app.run(port=8888, debug=True)
 
 
