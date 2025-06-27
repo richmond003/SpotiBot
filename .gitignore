@@ -195,3 +195,4 @@ cython_debug/
 
 playground.py
 user_token.json
+tracks.json
