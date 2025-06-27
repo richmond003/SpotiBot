@@ -44,19 +44,19 @@ class Api():
         data = res.json()
         return data
     
-    def playlists(self):
-        endpoint = f"{self.BASEURL}/me/playlists"
+    def playlists(self, next_ptr=None):
+        endpoint = next_ptr or f"{self.BASEURL}/me/playlists"
         res = requests.get(url=endpoint, headers=self.headers)
         res.raise_for_status()
         data = res.json()
         return data
     
     def tracks(self, next_ptr=None):
-        endpoint = next_ptr or f"{self.BASEURL}me/tracks?limit=50"
+        endpoint = next_ptr or f"{self.BASEURL}/me/tracks?limit=50"
         res = requests.get(url= endpoint , headers=self.headers)
         res.raise_for_status()
         data = res.json()
-        return data["tracks"]
+        return data
     
     def create_playlist(self, user_id, data):
         endpoint = f"{self.BASEURL}/users/{user_id}/playlists"

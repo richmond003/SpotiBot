@@ -4,9 +4,13 @@ from pathlib import Path
 import json
 import os
 
-USER_DATA_PATH = './users_data.json'
-token_exist = os.path.exists(USER_DATA_PATH)
-track_archives = {}
+USER_TOKEN_PATH = './user_token.json'
+token_exist = os.path.exists(USER_TOKEN_PATH)
+
+
+get_token = load_tokens()["access_token"]
+bot = Api(token=get_token)
+user_id = bot.user_profile()["id"]
 
 def save_user(new_data: dict):
     """
@@ -33,8 +37,8 @@ def fetch_tracks(nxt_req=None):
     """
     tracks = bot.tracks(nxt_req)
     next_set = tracks["next"]
-    user_tracks = track["items"]
-    return tracks, next_set, user_tracks
+    user_tracks = tracks["items"]
+    return next_set, user_tracks
 
 def  playlist_by_artist(bot, id, artist):
     """ 
@@ -42,50 +46,47 @@ def  playlist_by_artist(bot, id, artist):
     """
     for artist in artist:
         #TODO: check if artists playlist is already before creating a new playlist
-        new_playlist = {
+        create_playlist = {
             "name" : artist,
-            "description": f"Auto generated of your liked song by {artist}",
+            "description": f"Auto generated of your liked song by {artist}.\n Automated with @SpotiBot🤖",
             "public": "false"
         }
 
-        is_created = bot.create_playlist(user_id=id, data=new_playlist)
-        if is_created: #TODO: handle create_playist() to return true/false if rquest went through or not
-            continue
+        created_playlist = bot.create_playlist(user_id=id, data=create_playlist)
+        if created_playlist: #TODO: handle create_playist() to return true/false if rquest went through or not
+            new_playlist = {
+                "name": create_playlist["name"],
+                "id": created_playlist["id"],
+                "owner_id": created_playlist["owner"]["id"],
+                "tracks_limit": created_playlist["tracks"]["limit"],
+                "total_tracks": created_playlist["tracks"]["total"]
+            }
+            #TODO: put or add new playlist in database/json file
         else:
             raise Exception("An error occured with request")
 
-def add_songs_playlist():
+def get_all_playlist():
     pass
 
-    
-if (token_exist):
-    get_token = load_tokens()["access_token"]
-    bot = Api(token=get_token)
-    user_id = bot.user_profile()["id"]
+def add_tracks_playlist():
+    pass
 
-    """ # get first set of user track data
-    tracks = bot.tracks()
-    #get the next object if exist not null or none
-    next_set = tracks["next"]
-    # get item from the tracks data
-    user_tracks = tracks["items"]
- """
-    tracks, next_set, user_tacks = fetch_tracks()
-
+def get_user_tracks():
+    track_archives = {}
+    next_set, user_tracks = fetch_tracks()
+    req_calls = 1
     while next_set != None:
-        for track in user_tracks["track"]:
-            track_archives[track["name"]] = {
-                "id": track['id'], 
-                "link": track['href'],
+        for track in user_tracks:
+            track_archives[track["track"]["name"]] = {
+                "id": track["track"]['id'], 
+                "link": track["track"]['href'],
                 "artists": [artist["name"] for artist in track["track"]["artists"]]
-                }
-        """ tracks = bot.tracks(next_ptr=next_set)
-        next_set = tracks["next"]
-        user_tracks = tracks["items"] """
+                }  
+        next_set, user_tracks = fetch_tracks(nxt_req=next_set)
+        req_calls +=1
+    print(f"Calls: {req_calls}")
+    return track_archives
 
-        tracks, next_set, user_tracks = fetch_tracks(nxt_req=next_set)
-else:
-    raise Exception("File does not exist yet. Check oauth server or json file")
 
 
 
