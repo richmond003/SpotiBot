@@ -119,7 +119,7 @@ def  main():
                     pass
                 else:
                     # check whether track is already in playlist
-                    data = (user["email"], playlist_id, track_id)
+                    data = (user["email"], playlist_id, track["title"])
                     track_exist = db.check_track()
                     # call insert track function
                     pass
