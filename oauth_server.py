@@ -11,7 +11,7 @@ load_dotenv()
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRETE")
 REDIRECT_URL = os.getenv("SPOTIFY_REDIRECT_URI")
-SCOPE= "user-library-read playlist-modify-private playlist-modify-public"
+SCOPE= "user-library-read playlist-modify-private playlist-modify-public user-read-email"
 URL = "https://accounts.spotify.com/"
 TOKENS_PATH = "user_token.json"
 app = Flask(__name__)

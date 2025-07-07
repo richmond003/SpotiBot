@@ -58,15 +58,16 @@ class Api():
         data = res.json()
         return data
     
-    def create_playlist(self, user_id, data):
+    def post_playlist(self, user_id, data):
         endpoint = f"{self.BASEURL}/users/{user_id}/playlists"
         res = requests.post(url=endpoint, headers=self.headers, data=data)
         res.raise_for_status()
         stauts_code = res.status_code
         if stauts_code == 201:
             data = res.json()
-            return data, True
+            return data
         else:
+            
             return {}, False
 
     def add_items(self, playlist_id, data):
@@ -76,7 +77,17 @@ class Api():
         data = res.json()
         return data
     
+    def get_playlist(self, playlist_id):
+        """ 
+            https://api.spotify.com/v1/playlists/{playlist_id} 
+        """
+        endpoint = f"{self.BASEURL}/playlists/{playlist_id}"
+        res = requests.get(url=endpoint, headers=self.headers)
+        res.raise_for_status()
+        data = res.json()
+        return data
     
+  
     """ 
      new_playlist = {
     "name" : "{artist}",
@@ -85,4 +96,3 @@ class Api():
 }
       
     """
-
