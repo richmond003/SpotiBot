@@ -18,9 +18,9 @@ class PostgresDB:
     def insert_user(self, data):
         try:
             self.cur.execute("""
-            INSERT INTO users (name, email, spotify_id, spotify_url, total_playlist)
+            INSERT INTO users (name, email, user_spotify_id, user_spotify_url, total_playlist)
             VALUES(%s, %s, %s, %s, %s)
-            RETURNING id
+            RETURNING user_id
             """, data
             )
             self.conn.commit()
@@ -32,21 +32,21 @@ class PostgresDB:
     def insert_playlist(self, data):
         try:
             self.cur.execute("""
-            INSERT INTO playlists (id, playlist_name, playlist_id, playlist_link, total_tracks) 
-            VALUES(%s, %s, %s, %s, %s)
-            RETURNING *
+            INSERT INTO playlists (user_id, playlist_name, artist, playlist_spotify_id, playlist_spotify_url, total_tracks) 
+            VALUES(%s, %s, %s, %s, %s, %s)
+            RETURNING playlist_id 
             """, data
             )
             self.conn.commit()
-            results = self.cur.fetchall()
-            return results
+            results = self.cur.fetchone()
+            return results[0]
         except Exception as err:
             print(f"Error: {err}")
 
     def insert_track(self, data):
         try:
             self.cur.execute("""
-            INSERT INTO tracks (id, track_id, track_name, track_link) 
+            INSERT INTO tracks (playlist_id, track_spotify_id, track_name, track_spotify_url) 
             VALUES(%s, %s, %s, %s)
             """, data
             )
@@ -56,14 +56,14 @@ class PostgresDB:
         except Exception as err:
             print(f"Error: {err}")
     
-    def select_playlist(self, user, artist):
+    def select_playlist(self, email, artist):
         try:
             self.cur.execute(""" 
-            SELECT playlist_name, playlist_id, playlist_link, total_tracks 
+            SELECT playlist_id
             FROM playlists p 
-            JOIN users u ON u.id = p.id 
+            JOIN users u ON u.user_id = p.playlist_id 
             WHERE u.email = %s AND p.artist = %s
-            """ , (user,artist)
+            """ , (user, artist)
             )
             # self.conn.commit()
             results = self.cur.fetchall()
@@ -74,11 +74,11 @@ class PostgresDB:
     def select_user(self, email):
         try:
             self.cur.execute(""" 
-                SELECT id FROM users u
+                SELECT user_id FROM users u
                 WHERE u.email = %s 
              """, (email,))
             results = self.cur.fetchone()
-            return results
+            return results[0]
         except Exception as err:
             print(f"An error occured: {err}")
 
@@ -100,9 +100,9 @@ class PostgresDB:
             self.cur.execute(""" 
                 SELECT EXISTS(
                     SELECT 1 FROM tracks t
-                    JOIN playlists p ON t.id = p.entry_id
-                    JOIN users u ON p.id = u.id
-                    WHERE u.email = %s AND p.id = %s AND t.track_name = %s
+                    JOIN playlists p ON t.playlist_id = p.playlist_id
+                    JOIN users u ON p.user_id = u.user_id
+                    WHERE u.email = %s AND p.playlist_id = %s AND t.track_spotify_id = %s
                 )
              """, data)
             results = self.cur.fetchone()
@@ -115,13 +115,13 @@ class PostgresDB:
             self.cur.execute(""" 
                 SELECT EXISTS(
                     SELECT 1 FROM playlists p
-                    JOIN users u ON u.id = p.id
+                    JOIN users u ON u.user_id = p.user_id
                     WHERE u.email = %s AND p.artist = %s
                 )
             """, data)
             results = self.cur.fetchone()
             return results[0]
-        
+                
         except Exception as err:
             print(f"Error: {err}")
 
