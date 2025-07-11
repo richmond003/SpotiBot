@@ -60,15 +60,13 @@ def get_user_tracks():
         next_set, user_tracks = fetch_tracks(nxt_req=next_set)
         req_calls +=1
     print(f"Calls: {req_calls}")
-    with open('tracks.json', 'w') as tracks:
-        json.dump(saved_tracks, tracks, indent=3)
     return saved_tracks
 
 def create_playlist(user_id, artist):
     schema = {
         "name" : f"Your {artist} Vibes❤️",
         "description": f"Auto generated of your liked songs by {artist}. Playlist created and automated with @SpotiBot🤖",
-        "public": False
+        "public": "false"
     }
     new_playlist = bot.post_playlist(user_id, schema)
     return new_playlist
@@ -106,9 +104,7 @@ def  main():
     """
     try:
         user = bot.user_profile()
-        print(f"User info: {user}")
         user_exists = db.check_for_user(user['email'])
-        #  add user to db in user not in db
         if not user_exists:
             new_user = (user["display_name"], user["email"], user['id'], user['href'], 0)
             user_id = db.insert_user(new_user)
