@@ -194,6 +194,7 @@ cython_debug/
 .cursorindexingignore
 
 playground.py
+playground2.py
 user_token.json
 user_tracks.json
 mytracks.json

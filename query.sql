@@ -27,10 +27,9 @@ CREATE TABLE tracks (
     playlist_id INTEGER NOT NULL REFERENCES playlists(playlist_id),
     track_spotify_id TEXT NOT NULL,
     track_name TEXT NOT NULL,
-    track_spotify_uri TEXT NOT NULL
+    track_spotify_uri TEXT NOT NULL,
     track_spotify_url Text NOT NULL
 );
-
 
 -- Insert dummy users
 INSERT INTO users (name, email, user_spotify_id, user_spotify_url, total_playlist) VALUES
@@ -44,12 +43,12 @@ INSERT INTO playlists (user_id, playlist_name, artist, playlist_spotify_id, play
 (2, 'Bob Rock','some artist', 'bob_rock', 'https://open.spotify.com/playlist/bob_rock', 1);
 
 -- Insert dummy tracks for testing
-INSERT INTO tracks (playlist_id, track_spotify_id, track_name, track_spotify_url) VALUES
-(1, 'track_001', 'Song One', 'https://open.spotify.com/track/track_001'),
-(1, 'track_002', 'Song Two', 'https://open.spotify.com/track/track_002'),
-(1, 'track_003', 'Song Three', 'https://open.spotify.com/track/track_003'),
-(2, 'track_004', 'Chill Vibes', 'https://open.spotify.com/track/track_004'),
-(2, 'track_005', 'Relax Tune', 'https://open.spotify.com/track/track_005')
+INSERT INTO tracks (playlist_id, track_spotify_id, track_name, track_spotify_uri ,track_spotify_url) VALUES
+(1, 'track_001', 'Song One', 'track uri' ,'https://open.spotify.com/track/track_001'),
+(1, 'track_002', 'Song Two', 'track uri' ,'https://open.spotify.com/track/track_002'),
+(1, 'track_003', 'Song Three', 'track uri' ,'https://open.spotify.com/track/track_003'),
+(2, 'track_004', 'Chill Vibes', 'track uri' ,'https://open.spotify.com/track/track_004'),
+(2, 'track_005', 'Relax Tune', 'track uri' ,'https://open.spotify.com/track/track_005')
 
 
 -- Select users table

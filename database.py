@@ -29,12 +29,12 @@ class PostgresDB:
         except Exception as err:
             print(f"Error: {err}")
 
-    def insert_playlist(self, data):
+    def add_playlist(self, data):
         try:
             self.cur.execute("""
             INSERT INTO playlists (user_id, playlist_name, artist, playlist_spotify_id, playlist_spotify_url, total_tracks) 
             VALUES(%s, %s, %s, %s, %s, %s)
-            RETURNING playlist_id 
+            RETURNING playlist_id, playlist_spotify_id 
             """, data
             )
             self.conn.commit()
@@ -46,8 +46,8 @@ class PostgresDB:
     def insert_track(self, data):
         try:
             self.cur.execute("""
-            INSERT INTO tracks (playlist_id, track_spotify_id, track_name, track_spotify_url) 
-            VALUES(%s, %s, %s, %s)
+            INSERT INTO tracks (playlist_id, track_spotify_id, track_name, track_spotify_uri, track_spotify_url) 
+            VALUES(%s, %s, %s, %s, %s)
             """, data
             )
             self.conn.commit()
@@ -59,14 +59,14 @@ class PostgresDB:
     def select_playlist(self, email, artist):
         try:
             self.cur.execute(""" 
-            SELECT playlist_id
+            SELECT playlist_id, playlist_spotify_id
             FROM playlists p 
             JOIN users u ON u.user_id = p.playlist_id 
             WHERE u.email = %s AND p.artist = %s
-            """ , (user, artist)
+            """ , (email, artist)
             )
             # self.conn.commit()
-            results = self.cur.fetchall()
+            results = self.cur.fetchone()
             return results
         except Exception as err:
             print(f"Error: {err}")
@@ -82,6 +82,20 @@ class PostgresDB:
         except Exception as err:
             print(f"An error occured: {err}")
 
+    def select_all_tracks(self, email ,playlist_id):
+        try:
+            self.cur.execute(""" 
+                SELECT track_spotify_url FROM tracks t
+                JOIN playlists p ON t.playlist_id = p.playlist_id
+                JOIN users u ON u.user_id = p.user_id
+                WHERE u.email = %s AND p.playlist_id = %s
+            """, (email, playlist_id))
+            results = self.cur.fetchall()
+            flattend = list(zip(*results))[0]
+            return list(flattend)
+        except Exception as err:
+            print(f"Error: {err}")
+
     def check_for_user(self, email):
         try:
             self.cur.execute("""
@@ -95,7 +109,7 @@ class PostgresDB:
             print(f"Error: {err}")
 
 
-    def check_track(self, data):
+    def check_track(self, email, playlist_id, track_uri):
         try:
             self.cur.execute(""" 
                 SELECT EXISTS(
@@ -129,12 +143,13 @@ class PostgresDB:
         self.cur.close()
         self.conn.close()
 
+
 if __name__ == "__main__":
     testDB = PostgresDB()
-    data = ('Alice', 'Alice Chill', 'Chill Vibes')
-    new_user = ("Testing", "test@example.com", "spotify12345", "https://dumylink", 0)
+    # data = ('Alice', 'Alice Chill', 'Chill Vibes')
+    # new_user = ("Testing", "test@example.com", "spotify12345", "https://dumylink", 0)
     # user = testDB.check_track_exist(data)
-    user = testDB.select_user("bob@example.com")
-    print(f"user: {user}")
+    user = testDB.select_playlist('alice@example.com', "some artist")
+    print(f"tracks: {user}")
     testDB.close()
 
