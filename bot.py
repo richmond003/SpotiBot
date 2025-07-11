@@ -1,6 +1,6 @@
-from oauth_server import app, load_tokens
+from oauth_server import load_tokens
 from spotify_api import Api
-from pathlib import Path
+from time import sleep
 from database import PostgresDB
 from collections import defaultdict
 import json
@@ -15,23 +15,9 @@ db = PostgresDB()
 token = load_tokens()["access_token"]
 bot = Api(token=token)
 
-def save_user(user):
-    """
-        Save or add new user data in json formate 
-    """
-    try:
-        user_exists = db.check_for_user(user['email'])
-        if user_exists:
-            return
-        new_user = (user["display_name"], user["email"], user['id'], user['href'], 0)
-        db.insert_user(new_user)
 
-    except Exception as err:
-        print(f"Error: {err}")
-    finally:
-        print("Done") 
 
-def get_bot_playlists():
+""" def get_bot_playlists():
     playlists = bot.playlists()
     next_set = playlists["next"]
     items = playlists["items"]
@@ -44,7 +30,7 @@ def get_bot_playlists():
             playlist_id = playlist['id']
             all_playlist.append(playlist_id)
     #TODO: Sort and return all playlist created by spotibot
-    print(f"All playlist ID: {all_playlist}")
+    print(f"All playlist ID: {all_playlist}") """
 
 def fetch_tracks(nxt_req=None):
     """ 
@@ -84,7 +70,7 @@ def create_playlist(user_id, artist):
         "description": f"Auto generated of your liked songs by {artist}. Playlist created and automated with @SpotiBot🤖",
         "public": False
     }
-    new_playlist = db.post_playlist(user_id, schema)
+    new_playlist = bot.post_playlist(user_id, schema)
     return new_playlist
 
 def add_tracks(tracks: list, spotify_id):
@@ -131,13 +117,14 @@ def  main():
         
         liked_tracks, tracks_info = sorted_tracks()
         for  artist, tracks in liked_tracks.items():
+            new_tracks = []
             playlist_id, spotify_id = db.select_playlist(user["email"], artist)
-
             if not playlist_id:
                 new_playlist = create_playlist(user["id"], artist)
+                sleep(0.2)
                 new_playlist_data = (
                     user_id, 
-                    new_playlist["title"], 
+                    new_playlist["name"], 
                     artist, 
                     new_playlist["id"],
                     new_playlist["external_urls"]["spotify"],
@@ -145,14 +132,14 @@ def  main():
                     )
                 playlist_id, spotify_id = db.add_playlist(new_playlist_data)
             else:
-                new_tracks = []
+                #new_tracks = []
                 playlist_tracks = db.select_all_tracks(user["email"], playlist_id)
+
                 for track in tracks:
                     if track in playlist_tracks:
                         continue
                     else:
                         new_tracks.append(track)
-                        pass
 
             if new_tracks:
                 added_tracks = add_tracks(new_tracks, spotify_id)
@@ -167,19 +154,18 @@ def  main():
                 #insert into 
                 for track in tracks:
                     track_key = tracks_info[track]
-                    data = (playlist_id, track["id"], track_key["title"], track, track_key["url"])
+                    data = (playlist_id, track_key["id"], track_key["title"], track, track_key["url"])
                     db.insert_track(data)
 
-   
     except Exception as err:
-        print(f"An error occured: {err}")
+        print(f"Error from bot: {err}")
 
 
 
 
 if __name__ == "__main__":
-    # main()
-    get_user_tracks()
+    main()
+    #get_user_tracks()
 
 
 

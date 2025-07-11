@@ -24,7 +24,7 @@ class PostgresDB:
             """, data
             )
             self.conn.commit()
-            results = self.cur.fetchall()
+            results = self.cur.fetchone()
             return results[0]
         except Exception as err:
             print(f"Error: {err}")
@@ -39,7 +39,7 @@ class PostgresDB:
             )
             self.conn.commit()
             results = self.cur.fetchone()
-            return results[0]
+            return results
         except Exception as err:
             print(f"Error: {err}")
 
@@ -67,6 +67,8 @@ class PostgresDB:
             )
             # self.conn.commit()
             results = self.cur.fetchone()
+            if not results:
+                return (None, None)
             return results
         except Exception as err:
             print(f"Error: {err}")
@@ -80,7 +82,7 @@ class PostgresDB:
             results = self.cur.fetchone()
             return results[0]
         except Exception as err:
-            print(f"An error occured: {err}")
+            print(f"Error from select db: {err}")
 
     def select_all_tracks(self, email ,playlist_id):
         try:
@@ -146,10 +148,8 @@ class PostgresDB:
 
 if __name__ == "__main__":
     testDB = PostgresDB()
-    # data = ('Alice', 'Alice Chill', 'Chill Vibes')
-    # new_user = ("Testing", "test@example.com", "spotify12345", "https://dumylink", 0)
-    # user = testDB.check_track_exist(data)
-    user = testDB.select_playlist('alice@example.com', "some artist")
-    print(f"tracks: {user}")
+    # new_user = ("Testing2", "test2@example.com", "spotify123425", "https://dumylink2", 0)
+    user, checking = testDB.select_playlist('alice@example.com', 'mike')
+    print(user)
     testDB.close()
 

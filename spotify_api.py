@@ -60,7 +60,7 @@ class Api():
     
     def post_playlist(self, user_id, data):
         endpoint = f"{self.BASEURL}/users/{user_id}/playlists"
-        res = requests.post(url=endpoint, headers=self.headers, data=data)
+        res = requests.post(url=endpoint, headers=self.headers, json=data)
         res.raise_for_status()
         stauts_code = res.status_code
         if stauts_code == 201:
@@ -72,7 +72,7 @@ class Api():
 
     def add_items(self, playlist_id, data):
         endpoint = f"{self.BASEURL}/playlists/{playlist_id}/tracks"
-        res = requests.post(url=endpoint, headers=self.headers, data=data)
+        res = requests.post(url=endpoint, headers=self.headers, json=data)
         res.raise_for_status()
         data = res.json()
         return data
