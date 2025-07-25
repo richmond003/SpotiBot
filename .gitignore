@@ -193,9 +193,11 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-playground.py
-playground2.py
+
 user_token.json
 user_tracks.json
 mytracks.json
 tracks.json
+todo.txt
+testing.py
+notification.py

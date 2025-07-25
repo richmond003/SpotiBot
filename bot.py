@@ -16,25 +16,9 @@ token = load_tokens()["access_token"]
 bot = Api(token=token)
 
 
-
-""" def get_bot_playlists():
-    playlists = bot.playlists()
-    next_set = playlists["next"]
-    items = playlists["items"]
-    all_playlist = [playlist["id"] for playlist in items]
-    while next_set:
-        playlists = bot.playlists(next_set)
-        next_set = playlists['next']
-        items = playlists["items"]
-        for playlist in items:
-            playlist_id = playlist['id']
-            all_playlist.append(playlist_id)
-    #TODO: Sort and return all playlist created by spotibot
-    print(f"All playlist ID: {all_playlist}") """
-
 def fetch_tracks(nxt_req=None):
     """ 
-     request for user tracks and also make tracks for next set of user tracks  
+     fetch user tracks and also make tracks for next set of user tracks in API  
     """
     tracks = bot.tracks(nxt_req)
     next_set = tracks["next"]
@@ -42,6 +26,9 @@ def fetch_tracks(nxt_req=None):
     return next_set, user_tracks
 
 def get_user_tracks():
+    """ 
+    Get all user liked songs 
+    """
     saved_tracks = []
     next_set, user_tracks = fetch_tracks()
     req_calls = 1
@@ -63,8 +50,11 @@ def get_user_tracks():
     return saved_tracks
 
 def create_playlist(user_id, artist):
+    """ 
+        Create new playlist for a specific artist 
+    """
     schema = {
-        "name" : f"Your {artist} Vibes❤️",
+        "name" : f"Your {artist} Essentials",
         "description": f"Auto generated of your liked songs by {artist}. Playlist created and automated with @SpotiBot🤖",
         "public": "false"
     }
@@ -72,6 +62,7 @@ def create_playlist(user_id, artist):
     return new_playlist
 
 def add_tracks(tracks: list, spotify_id):
+    """ Add new tracks to playlist """
     schema = {
         "uris": tracks,
         "position": 0
@@ -80,6 +71,7 @@ def add_tracks(tracks: list, spotify_id):
     return added_tracks
 
 def sorted_tracks():
+    """ sort tracks data for easy manuplations """
     liked_tracks = get_user_tracks()
     originsed_tracks = defaultdict(lambda : {"apperance": 0, "uris": []})
     sorted_tracks = {}
@@ -94,16 +86,13 @@ def sorted_tracks():
             originsed_tracks[artist]["uris"].append(track["uri"])
 
     for key, val in originsed_tracks.items():
-        if val["apperance"] >= 3:
+        if val["apperance"] >= 5:
             sorted_tracks[key] = val["uris"]
     return sorted_tracks, tracks_info
 
 def  main():
-    """ 
-        create playist accroding to user liked songs by artist 
-    """
     try:
-        user = bot.user_profile()
+        user = bot.user_profile() 
         user_exists = db.check_for_user(user['email'])
         if not user_exists:
             new_user = (user["display_name"], user["email"], user['id'], user['href'], 0)
@@ -117,7 +106,7 @@ def  main():
             playlist_id, spotify_id = db.select_playlist(user["email"], artist)
             if not playlist_id:
                 new_playlist = create_playlist(user["id"], artist)
-                sleep(0.2)
+                sleep(0.2) 
                 new_playlist_data = (
                     user_id, 
                     new_playlist["name"], 
@@ -128,7 +117,6 @@ def  main():
                     )
                 playlist_id, spotify_id = db.add_playlist(new_playlist_data)
             else:
-                #new_tracks = []
                 playlist_tracks = db.select_all_tracks(user["email"], playlist_id)
 
                 for track in tracks:
@@ -138,7 +126,8 @@ def  main():
                         new_tracks.append(track)
 
             if new_tracks:
-                added_tracks = add_tracks(new_tracks, spotify_id)
+                added_tracks = add_tracks(new_tracks, spotify_id) # add new tracks to spotify playlist
+
                 # insrt into db
                 if added_tracks:
                     for track in new_tracks:
@@ -157,11 +146,9 @@ def  main():
         print(f"Error from bot: {err}")
 
 
-
-
 if __name__ == "__main__":
     main()
-    #get_user_tracks()
+
 
 
 

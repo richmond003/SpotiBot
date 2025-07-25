@@ -27,7 +27,7 @@ class PostgresDB:
             results = self.cur.fetchone()
             return results[0]
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from insert user db: {err}")
 
     def add_playlist(self, data):
         try:
@@ -41,7 +41,7 @@ class PostgresDB:
             results = self.cur.fetchone()
             return results
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from add playlist db: {err}")
 
     def insert_track(self, data):
         try:
@@ -51,10 +51,10 @@ class PostgresDB:
             """, data
             )
             self.conn.commit()
-            results = self.cur.fetchall()
-            return results
+            # results = self.cur.fetchall()
+            # return results
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from insert track db: {err}")
     
     def select_playlist(self, email, artist):
         try:
@@ -71,7 +71,7 @@ class PostgresDB:
                 return (None, None)
             return results
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from select playlist db: {err}")
 
     def select_user(self, email):
         try:
@@ -82,7 +82,7 @@ class PostgresDB:
             results = self.cur.fetchone()
             return results[0]
         except Exception as err:
-            print(f"Error from select db: {err}")
+            print(f"Error from select user db: {err}")
 
     def select_all_tracks(self, email ,playlist_id):
         try:
@@ -96,7 +96,7 @@ class PostgresDB:
             flattend = list(zip(*results))[0]
             return list(flattend)
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from select all tracks: {err}")
 
     def check_for_user(self, email):
         try:
@@ -108,7 +108,7 @@ class PostgresDB:
             results = self.cur.fetchone()
             return results[0]
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from check all users: {err}")
 
 
     def check_track(self, email, playlist_id, track_uri):
@@ -124,7 +124,7 @@ class PostgresDB:
             results = self.cur.fetchone()
             return results[0]
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from check track: {err}")
 
     def check_playlist_exist(self, data):
         try:
@@ -139,7 +139,13 @@ class PostgresDB:
             return results[0]
                 
         except Exception as err:
-            print(f"Error: {err}")
+            print(f"Error from check playlist exist: {err}")
+
+    def increace_playlist():
+        try:
+            pass
+        except Exception as err:
+            print(f"Error from increase_playlist: {err}")
 
     def close(self):
         self.cur.close()

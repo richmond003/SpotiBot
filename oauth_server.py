@@ -3,7 +3,7 @@ import json
 from urllib.parse import urlencode
 import requests
 from dotenv import load_dotenv
-from flask import Flask, redirect, request
+from flask import Flask, redirect, request, render_template
 import requests.auth
 
 # load env variables here
@@ -56,7 +56,7 @@ def callback():
         return "Authentication failed"
     tokens =  res.json()
     save_tokens(tokens)
-    return "You are all set and ready to go. You can close the page now😉"
+    return render_template("index.html")
     
 @app.route("/refresh")
 def refresh():
@@ -78,7 +78,7 @@ def refresh():
     
     new_tokens["refresh_token"] = new_tokens.get("refresh_token",old_tokens)
     save_tokens(new_tokens)
-    return "Token sucessfully refreshed"
+    return render_template("refresh.html")
     
 if __name__ == "__main__":
     app.run(port=8888)
