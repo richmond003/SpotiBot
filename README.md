@@ -60,4 +60,6 @@ cd spotibot
 pip install -r requirements.txt
 
 # Set up environment variables
-# (see .env.example for reference)
+# copy the env file and provide your credentialss
+cp .env.example .env
+
